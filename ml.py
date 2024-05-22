@@ -1,14 +1,12 @@
 import melee
 import json
 import random
-import time
 import sys
 import os
+import random
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 console = melee.Console(path=r"C:\Users\aiden\AppData\Roaming\Slippi Launcher\netplay")
-REWARD_WEIGHT = 0.05
-DELAY = 30
 json_file = open(f"{CURRENT_DIR}/agent_data.json", "r")
 state_data = json.load(json_file)
 
@@ -44,32 +42,47 @@ def get_stock(g, port):
 # Basic Attacks
 def Jab(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
+    return 27
 def L_Tilt(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.35, 0.5)
+    return 35
+
 def R_Tilt(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.65, 0.5)
+    return 35
+
 def U_Tilt(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0.65)
+    return 39
+
 def D_Tilt(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0.35)
+    return 49
 
 # Smash Attacks
 def L_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0, 0.5)
+    return 49
+
 def R_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 1, 0.5)
+    return 49
+
 def U_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 1)
+    return 54
+
 def D_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0)
+    return 64
 
 # Special Attacks
 def N_Special(controller):
@@ -91,50 +104,81 @@ def D_Special(controller):
 def L_DAttack(controller):
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_A)
+    return 60
+
 def R_DAttack(controller):
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_A)
+    return 60
 
 # Throws
 def L_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0, 0.5)
+    return 29
+
 def R_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 1, 0.5)
+    return 29
+
 def U_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 1)
+    return 29
+
 def D_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0)
+    return 29
 
 def Shield(controller):
     controller.press_button(melee.enums.Button.BUTTON_R)
+    return 100
+
 def Release(controller):
     controller.release_all()
+    return 15
 
 # Movements
 def L_Dodge(controller):
     controller.press_button(melee.enums.Button.BUTTON_R)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
+    return 45
+
 def R_Dodge(controller):
     controller.press_button(melee.enums.Button.BUTTON_R)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
+    return 45
+
 def Jump(controller):
     controller.press_button(melee.enums.Button.BUTTON_X)
+    return 120
+
 def L_Walk(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.65, 0.5)
+    return 60
+
 def R_Walk(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.35, 0.5)
+    return 60
+
 def L_Dash(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
+    return 60
+
 def R_Dash(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
+    return 60
+
+def get_random_action():
+    actions = [R_Dash, L_Dash, R_Walk, L_Walk, Jump, R_Dodge, L_Dodge, Release, Shield, L_Throw, R_Throw, D_Throw, U_Throw,
+               L_DAttack, R_DAttack, L_Smash, R_Smash, D_Smash, U_Smash, L_Tilt, R_Tilt, U_Tilt, D_Tilt, Jab]
+    return actions[random.randint(0, len(actions) - 1)]
 
 def get_current_state(g, agent_port, opponent_port):
     agent_percent = get_percent(g, agent_port)
@@ -166,20 +210,26 @@ def get_current_state(g, agent_port, opponent_port):
 
 def get_action(state_num):
     actions = state_data[str(state_num)]["Actions"]
+    # Normalize action probabilities to be non-negative
+    min_prob = min(actions.values())
+    if min_prob < 0:
+        actions = {action: prob - min_prob for action, prob in actions.items()}
+
     total_prob = sum(actions.values())
+    if total_prob == 0:
+        return "Release"  # Return default action if all probabilities are zero
 
-    if total_prob != 0:
-        for action, prob in actions.items():
-            actions[action] = prob / total_prob
+    # Normalize the probabilities to sum to 1
+    actions = {action: prob / total_prob for action, prob in actions.items()}
 
-    rand_num = random.uniform(0, total_prob)
+    rand_num = random.uniform(0, 1)
     cumulative_prob = 0
     for action, prob in actions.items():
         cumulative_prob += prob
         if rand_num <= cumulative_prob:
             return action
-    
-    return "Release"  # Return default action 
+
+    return "Release"  # Fallback in case no action is selected
         
 def unpack_state(state):
     return state[0], state[1], state[2], state[3], state[4], state[5], state[6], state[7], state[8], state[9]
@@ -187,18 +237,24 @@ def unpack_state(state):
 def calculate_rewards(prev_state, curr_state):
     prev_agent_percent, prev_opp_percent, prev_x_dist, prev_y_dist, prev_x_pos, _, _, _, prev_agent_stocks, prev_opp_stocks = unpack_state(prev_state)
     curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks = unpack_state(curr_state)
-
+    
+    # weights subject to change
+    distance_x_weight = 0.1
+    distance_y_weight = 0.1
+    damage_taken_weight = 0.2
+    damage_done_weight = 0.1
+    
     # X/Y Position
-    x_diff = curr_x_dist - prev_x_dist # negative is closer, positive is further
+    x_diff = curr_x_dist - prev_x_dist 
     y_diff = curr_y_dist - prev_y_dist
-    distance_x = x_diff * REWARD_WEIGHT
-    distance_y = y_diff * REWARD_WEIGHT
+    distance_x = x_diff * distance_x_weight
+    distance_y = y_diff * distance_y_weight
 
     # Percentages
     agent_percent_diff = curr_agent_percent - prev_agent_percent # Damage taken 
     opp_percent_diff = curr_opp_percent - prev_opp_percent 
-    damage_taken = agent_percent_diff * REWARD_WEIGHT
-    damage_done = opp_percent_diff * (REWARD_WEIGHT / 2)
+    damage_taken = agent_percent_diff * damage_taken_weight
+    damage_done = opp_percent_diff * damage_done_weight
 
     # Stocks
     stock_lost = False
@@ -232,14 +288,15 @@ def update_odds(dist_x, dist_y, damage_taken, damage_done, actions):
 
 def update_odds_long(stock_lost, stock_taken, actions_long):
     # Stocks
+    stock_weight = 0.5 
     for state_num, action_list in actions_long.items():  
         for action in action_list:  
             if stock_lost:
-                state_data[state_num]["Actions"][action] += (1)
-                print(f'{action} of state #{state_num}: changed by {1}')
+                state_data[state_num]["Actions"][action] += (stock_weight)
+                print(f'{action} of state #{state_num}: changed by {stock_weight}')
             if stock_taken:
-                state_data[state_num]["Actions"][action] -= (1)
-                print(f'{action} of state #{state_num}: changed by {1}')
+                state_data[state_num]["Actions"][action] -= (stock_weight)
+                print(f'{action} of state #{state_num}: changed by -{stock_weight}')
 
 def update_agent():
     with open(f"{CURRENT_DIR}/agent_data.json", "w") as json_file: 
@@ -278,6 +335,7 @@ a1_actions_long = {}
 a2_actions_long = {}
 current_frame = 0
 opp_stocks = 0
+consecutive_same_state = 0
 button_pressed = False
 
 prev_a1_state = None
@@ -299,7 +357,6 @@ while True:
         a2_actions = {}
 
         updated = False
-        print('getting previous state...')
         a1_state_num, curr_a1_state  = get_current_state(gamestate, 1, 2)
         a2_state_num, curr_a2_state  = get_current_state(gamestate, 2, 1)
         
@@ -325,19 +382,26 @@ while True:
         #     if a2_A : controller_opp.release_button(melee.enums.Button.BUTTON_A)
         #     if a2_C[0] != 0.5 or a2_C[1] != 0.5: controller_opp.release_button(melee.enums.Button.BUTTON_C)
 
-        if prev_a1_state and prev_a2_state:
-            print(f'before: {prev_a1_state}')
-            print(f'after: {curr_a1_state}')
-            print('-------------------------------------------------')
+        # if prev_a1_state and prev_a2_state:
+        #     print(f'before: {prev_a1_state}')
+        #     print(f'after: {curr_a1_state}')
+        #     print('-------------------------------------------------')
 
         # perform actions
-        a1_action = get_action(a1_state_num)
-        action_func = getattr(sys.modules[__name__], a1_action, None)
-        action_func(controller)
+        if consecutive_same_state < 2:
+            a1_action = get_action(a1_state_num)
+            a1_action_func = getattr(sys.modules[__name__], a1_action, None)
 
-        a2_action = get_action(a2_state_num)
-        action_func = getattr(sys.modules[__name__], a2_action, None)
-        action_func(controller_opp)
+            a2_action = get_action(a2_state_num)
+            a2_action_func = getattr(sys.modules[__name__], a2_action, None)
+        else: # if stuck in same state, do random action
+            a1_action_func = get_random_action() 
+            a2_action_func = get_random_action()
+            print('doing random action')
+
+        a1_wait = a1_action_func(controller)
+        a2_wait = a2_action_func(controller_opp)
+        wait_duration = max(a1_wait, a2_wait)
 
         # else:
         #     a1_action = "Release"
@@ -362,44 +426,52 @@ while True:
         a2_actions_long.update({a2_state_num: a2_performed_actions_long})
 
         # Wait
-        target_frame = current_frame + 300
+        target_frame = current_frame + wait_duration
         while current_frame < target_frame:
             waiting = True
             console.step()
             current_frame += 1
 
-        # After waiting
+    # After waiting
         waiting = False
+
+    # Look at states after actions have been performed
+        if prev_a1_state and prev_a2_state:
+            if prev_a1_state == curr_a1_state:
+                consecutive_same_state += 1
+            else: consecutive_same_state = 0
+            opp_stocks = prev_a1_state[8]
+            # Update the odds
+            a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_stock_lost, a1_stock_taken = calculate_rewards(prev_a1_state, curr_a1_state)
+            update_odds(a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_actions)
+            
+            # Reset short term actions list
+            a1_performed_actions = set()
+            a1_actions = {}
+
+            # Update odds with longer context
+            update_odds_long(a1_stock_lost, a1_stock_taken, a1_actions_long)                
+            # Reset the long term actions list when stocks change
+            if a1_stock_lost or a1_stock_taken: 
+                a1_performed_actions_long = set()
+                a1_actions_long = {}
+            
+            a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_stock_lost, a2_stock_taken = calculate_rewards(prev_a2_state, curr_a2_state)
+            update_odds(a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_actions)
+            update_odds_long(a2_stock_lost, a2_stock_taken, a2_actions_long)
+            a2_performed_actions = set()
+            a2_actions = {}
+
+            if a2_stock_lost or a2_stock_taken:
+                a2_performed_actions_long = set()
+                a2_actions_long = {}
+        
         prev_a1_state = curr_a1_state
         prev_a2_state = curr_a2_state
 
-        # Look at states after actions have been performed
-        opp_stocks = prev_a1_state[8]
-
-        # Update the odds
-        a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_stock_lost, a1_stock_taken = calculate_rewards(prev_a1_state, curr_a1_state)
-        update_odds(a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_actions)
-        
-        # Reset short term actions list
-        a1_performed_actions = set()
-        a1_actions = {}
-
-        # Update odds with longer context
-        update_odds_long(a1_stock_lost, a1_stock_taken, a1_actions_long)                
-        # Reset the long term actions list when stocks change
-        if a1_stock_lost or a1_stock_taken: 
-            a1_performed_actions_long = set()
-            a1_actions_long = {}
-        
-        a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_stock_lost, a2_stock_taken = calculate_rewards(prev_a2_state, curr_a2_state)
-        update_odds(a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_actions)
-        update_odds_long(a2_stock_lost, a2_stock_taken, a2_actions_long)
-        a2_performed_actions = set()
-        a2_actions = {}
-
-        if a2_stock_lost or a2_stock_taken:
-            a2_performed_actions_long = set()
-            a2_actions_long = {}
+        # Clear inputs after action has been performed
+        Release(controller)
+        Release(controller_opp)
 
     else:
         if not updated:
