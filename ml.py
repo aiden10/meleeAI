@@ -2,7 +2,6 @@ import melee
 import json
 import random
 import time
-import threading
 import sys
 import os
 
@@ -165,17 +164,6 @@ def get_current_state(g, agent_port, opponent_port):
 
     return None 
 
-def capture_state():
-    global curr_a1_state, curr_a2_state, prev_a1_state, prev_a2_state
-    
-    while True:
-        _, prev_a1_state = get_current_state(gamestate, 1, 2)
-        _, prev_a2_state = get_current_state(gamestate, 2, 1)
-        time.sleep(1.5)  
-        _, curr_a1_state = get_current_state(gamestate, 1, 2)
-        _, curr_a2_state = get_current_state(gamestate, 2, 1)
-        time.sleep(3)  
-
 def get_action(state_num):
     actions = state_data[str(state_num)]["Actions"]
     total_prob = sum(actions.values())
@@ -288,7 +276,7 @@ a1_performed_actions_long = set()
 a2_performed_actions_long = set()
 a1_actions_long = {}
 a2_actions_long = {}
-last_frame = 0
+current_frame = 0
 opp_stocks = 0
 button_pressed = False
 
@@ -296,19 +284,13 @@ prev_a1_state = None
 curr_a1_state = None
 prev_a2_state = None
 curr_a2_state = None
-
-thread_active = False
-state_thread = threading.Thread(target=capture_state)
-state_thread.daemon = True  
+waiting = False
+updated = False
 
 while True:
-    gamestate = console.step()
+    if not waiting: gamestate = console.step()
     if gamestate.menu_state in [melee.Menu.IN_GAME, melee.Menu.SUDDEN_DEATH]:
-        if not thread_active:
-            state_thread.start()  
-            thread_active = True
-
-        current_frame = gamestate.frame
+        current_frame += 1
 
         a1_performed_actions = set()
         a2_performed_actions = set()
@@ -317,47 +299,50 @@ while True:
         a2_actions = {}
 
         updated = False
+        print('getting previous state...')
+        a1_state_num, curr_a1_state  = get_current_state(gamestate, 1, 2)
+        a2_state_num, curr_a2_state  = get_current_state(gamestate, 2, 1)
         
-        a1_state_num, _ = get_current_state(gamestate, 1, 2)
-        a2_state_num, _ = get_current_state(gamestate, 2, 1)
-
         # Controller state
-        a1_R = gamestate.players[1].controller_state.button[melee.enums.Button.BUTTON_R]
-        a1_Z = gamestate.players[1].controller_state.button[melee.enums.Button.BUTTON_Z]
-        a1_A = gamestate.players[1].controller_state.button[melee.enums.Button.BUTTON_A]
-        a1_C = gamestate.players[1].controller_state.c_stick
+        # a1_R = gamestate.players[1].controller_state.button[melee.enums.Button.BUTTON_R]
+        # a1_Z = gamestate.players[1].controller_state.button[melee.enums.Button.BUTTON_Z]
+        # a1_A = gamestate.players[1].controller_state.button[melee.enums.Button.BUTTON_A]
+        # a1_C = gamestate.players[1].controller_state.c_stick
 
-        a2_R = gamestate.players[2].controller_state.button[melee.enums.Button.BUTTON_R]
-        a2_Z = gamestate.players[2].controller_state.button[melee.enums.Button.BUTTON_Z]
-        a2_A = gamestate.players[2].controller_state.button[melee.enums.Button.BUTTON_A]
-        a2_C = gamestate.players[2].controller_state.c_stick
+        # a2_R = gamestate.players[2].controller_state.button[melee.enums.Button.BUTTON_R]
+        # a2_Z = gamestate.players[2].controller_state.button[melee.enums.Button.BUTTON_Z]
+        # a2_A = gamestate.players[2].controller_state.button[melee.enums.Button.BUTTON_A]
+        # a2_C = gamestate.players[2].controller_state.c_stick
 
-        if button_pressed:
-            if a1_R : controller.release_button(melee.enums.Button.BUTTON_R)
-            if a1_Z : controller.release_button(melee.enums.Button.BUTTON_Z)
-            if a1_A : controller.release_button(melee.enums.Button.BUTTON_A)
-            if a1_C[0] != 0.5 or a1_C[1] != 0.5: controller.release_button(melee.enums.Button.BUTTON_C)
+        # if button_pressed:
+        #     if a1_R : controller.release_button(melee.enums.Button.BUTTON_R)
+        #     if a1_Z : controller.release_button(melee.enums.Button.BUTTON_Z)
+        #     if a1_A : controller.release_button(melee.enums.Button.BUTTON_A)
+        #     if a1_C[0] != 0.5 or a1_C[1] != 0.5: controller.release_button(melee.enums.Button.BUTTON_C)
 
-            if a2_R : controller_opp.release_button(melee.enums.Button.BUTTON_R)
-            if a2_Z : controller_opp.release_button(melee.enums.Button.BUTTON_Z)
-            if a2_A : controller_opp.release_button(melee.enums.Button.BUTTON_A)
-            if a2_C[0] != 0.5 or a2_C[1] != 0.5: controller_opp.release_button(melee.enums.Button.BUTTON_C)
+        #     if a2_R : controller_opp.release_button(melee.enums.Button.BUTTON_R)
+        #     if a2_Z : controller_opp.release_button(melee.enums.Button.BUTTON_Z)
+        #     if a2_A : controller_opp.release_button(melee.enums.Button.BUTTON_A)
+        #     if a2_C[0] != 0.5 or a2_C[1] != 0.5: controller_opp.release_button(melee.enums.Button.BUTTON_C)
 
-        if abs(current_frame - last_frame) >= DELAY:
-            a1_action = get_action(a1_state_num)
-            action_func = getattr(sys.modules[__name__], a1_action, None)
-            action_func(controller)
+        if prev_a1_state and prev_a2_state:
+            print(f'before: {prev_a1_state}')
+            print(f'after: {curr_a1_state}')
+            print('-------------------------------------------------')
 
-            a2_action = get_action(a2_state_num)
-            action_func = getattr(sys.modules[__name__], a2_action, None)
-            action_func(controller_opp)
-            last_frame = gamestate.frame
-            button_pressed = True
+        # perform actions
+        a1_action = get_action(a1_state_num)
+        action_func = getattr(sys.modules[__name__], a1_action, None)
+        action_func(controller)
 
-        else:
-            a1_action = "Release"
-            a2_action = "Release"
-            button_pressed = False
+        a2_action = get_action(a2_state_num)
+        action_func = getattr(sys.modules[__name__], a2_action, None)
+        action_func(controller_opp)
+
+        # else:
+        #     a1_action = "Release"
+        #     a2_action = "Release"
+        #     button_pressed = False
             
         # if a1_action != "Release":
         #     print(f'A1: {a1_action}')
@@ -376,53 +361,60 @@ while True:
         a1_actions_long.update({a1_state_num: a1_performed_actions_long})
         a2_actions_long.update({a2_state_num: a2_performed_actions_long})
 
+        # Wait
+        target_frame = current_frame + 300
+        while current_frame < target_frame:
+            waiting = True
+            console.step()
+            current_frame += 1
+
+        # After waiting
+        waiting = False
+        prev_a1_state = curr_a1_state
+        prev_a2_state = curr_a2_state
+
         # Look at states after actions have been performed
-        if prev_a1_state and curr_a1_state:
-            # print(f'before: {prev_a1_state}')
-            # print(f'after: {curr_a1_state}')
-            # print()
-            opp_stocks = prev_a1_state[8]
+        opp_stocks = prev_a1_state[8]
 
-            # Update the odds
-            a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_stock_lost, a1_stock_taken = calculate_rewards(prev_a1_state, curr_a1_state)
-            update_odds(a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_actions)
-            
-            # Reset short term actions list
-            a1_performed_actions = set()
-            a1_actions = {}
+        # Update the odds
+        a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_stock_lost, a1_stock_taken = calculate_rewards(prev_a1_state, curr_a1_state)
+        update_odds(a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_actions)
+        
+        # Reset short term actions list
+        a1_performed_actions = set()
+        a1_actions = {}
 
-            # Update odds with longer context
-            update_odds_long(a1_stock_lost, a1_stock_taken, a1_actions_long)                
-            # Reset the long term actions list when stocks change
-            if a1_stock_lost or a1_stock_taken: 
-                a1_performed_actions_long = set()
-                a1_actions_long = {}
+        # Update odds with longer context
+        update_odds_long(a1_stock_lost, a1_stock_taken, a1_actions_long)                
+        # Reset the long term actions list when stocks change
+        if a1_stock_lost or a1_stock_taken: 
+            a1_performed_actions_long = set()
+            a1_actions_long = {}
+        
+        a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_stock_lost, a2_stock_taken = calculate_rewards(prev_a2_state, curr_a2_state)
+        update_odds(a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_actions)
+        update_odds_long(a2_stock_lost, a2_stock_taken, a2_actions_long)
+        a2_performed_actions = set()
+        a2_actions = {}
 
-            prev_a1_state = None
-            curr_a1_state = None
+        if a2_stock_lost or a2_stock_taken:
+            a2_performed_actions_long = set()
+            a2_actions_long = {}
 
-        if prev_a2_state and curr_a2_state:
-            
-            a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_stock_lost, a2_stock_taken = calculate_rewards(prev_a2_state, curr_a2_state)
-            update_odds(a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_actions)
-            update_odds_long(a2_stock_lost, a2_stock_taken, a2_actions_long)
-            a2_performed_actions = set()
-            a2_actions = {}
-
-            if a2_stock_lost or a2_stock_taken:
-                a2_performed_actions_long = set()
-                a2_actions_long = {}
-
-            prev_a2_state = None
-            curr_a2_state = None
     else:
         if not updated:
             controller.release_all()
             controller_opp.release_all()
-            last_frame = 0
-            update_agent()
-            record_results(opp_stocks)
+            current_frame = 0
             updated = True
+            prev_a1_state = None
+            curr_a1_state = None
+            prev_a2_state = None
+            curr_a2_state = None
+            update_agent()
+
+            # record_results(opp_stocks)
+
 
         melee.MenuHelper.menu_helper_simple(gamestate,
                                             controller,
@@ -440,7 +432,7 @@ while True:
                                             connect_code="",
                                             cpu_level=0,
                                             costume=0,
-                                            autostart=False,
+                                            autostart=True,
                                             swag=False)
 
 

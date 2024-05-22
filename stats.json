@@ -1,5 +1,5 @@
 {
-    "Current Match": 20,
+    "Current Match": 21,
     "Matches": [
         {
             "Match Number": 1,
@@ -75,6 +75,10 @@
         },
         {
             "Match Number": 19,
+            "Stocks Remaining": 0
+        },
+        {
+            "Match Number": 20,
             "Stocks Remaining": 0
         }
     ]

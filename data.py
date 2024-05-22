@@ -61,4 +61,4 @@ def update_movement():
     json_file.close()
     print('done')
 
-update_movement()
+create_initial_agent()
