@@ -2,7 +2,6 @@ import json
 import os
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-percent_ranges = [(0, 50), (50, 1000)]
 x_dist_ranges = [(0, 5), (5, 16), (16, 30), (30, 50), (50, 70), (70, 1000)]
 y_dist_ranges = [(0, 5), (5, 16), (16, 30), (30, 50), (50, 70), (70, 1000)]
 x_pos_ranges = [(-1000, -85), (-85, -70), (-70, 70), (70, 85), (85, 1000)]
@@ -11,25 +10,21 @@ offstage = [True, False]
 facing = [True, False]
 def create_initial_agent():
     states = []
-    for agent_percent in percent_ranges:
-        for opp_percent in percent_ranges:
-            for y_range in y_dist_ranges:
-                for x_range in x_dist_ranges:
-                    for x_pos in x_pos_ranges:
-                        for is_airborne in airborne:
-                            for is_offstage in offstage:
-                                for direction in facing:
-                                    state = {
-                                        "Agent Percentage": agent_percent,
-                                        "Opponent Percentage": opp_percent,
-                                        "X_Distance": x_range,
-                                        "Y_Distance": y_range,
-                                        "X_Position": x_pos,
-                                        "Airborne": is_airborne,
-                                        "Offstage": is_offstage,
-                                        "Facing": direction
-                                    }
-                                    states.append(state)
+    for y_range in y_dist_ranges:
+        for x_range in x_dist_ranges:
+            for x_pos in x_pos_ranges:
+                for is_airborne in airborne:
+                    for is_offstage in offstage:
+                        for direction in facing:
+                            state = {
+                                "X_Distance": x_range,
+                                "Y_Distance": y_range,
+                                "X_Position": x_pos,
+                                "Airborne": is_airborne,
+                                "Offstage": is_offstage,
+                                "Facing": direction
+                            }
+                            states.append(state)
 
     actions = ["Jab", "L_Tilt", "R_Tilt", "U_Tilt", "D_Tilt",
                 "L_Smash", "R_Smash", "U_Smash", "D_Smash",

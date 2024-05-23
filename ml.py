@@ -9,6 +9,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 console = melee.Console(path=r"C:\Users\aiden\AppData\Roaming\Slippi Launcher\netplay")
 json_file = open(f"{CURRENT_DIR}/agent_data.json", "r")
 state_data = json.load(json_file)
+total_damage = 0
 
 # Observations
 def get_percent(g, port):
@@ -195,8 +196,8 @@ def get_current_state(g, agent_port, opponent_port):
     for state_num, data in state_data.items():
         state_info = data["State"]
         if (
-            agent_percent >= state_info["Agent Percentage"][0] and agent_percent <= state_info["Agent Percentage"][1] and
-            opp_percent >= state_info["Opponent Percentage"][0] and opp_percent <= state_info["Opponent Percentage"][1] and
+            # agent_percent >= state_info["Agent Percentage"][0] and agent_percent <= state_info["Agent Percentage"][1] and
+            # opp_percent >= state_info["Opponent Percentage"][0] and opp_percent <= state_info["Opponent Percentage"][1] and
             x_pos >= state_info["X_Position"][0] and x_pos <= state_info["X_Position"][1] and
             x_dist >= state_info["X_Distance"][0] and x_dist <= state_info["X_Distance"][1] and
             y_dist >= state_info["Y_Distance"][0] and y_dist <= state_info["Y_Distance"][1] and
@@ -236,6 +237,7 @@ def unpack_state(state):
     return state[0], state[1], state[2], state[3], state[4], state[5], state[6], state[7], state[8], state[9]
 
 def calculate_rewards(prev_state, curr_state):
+    global total_damage
     prev_agent_percent, prev_opp_percent, prev_x_dist, prev_y_dist, prev_x_pos, _, _, _, prev_agent_stocks, prev_opp_stocks = unpack_state(prev_state)
     curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks = unpack_state(curr_state)
     
@@ -254,6 +256,9 @@ def calculate_rewards(prev_state, curr_state):
     # Percentages
     agent_percent_diff = curr_agent_percent - prev_agent_percent # Damage taken 
     opp_percent_diff = curr_opp_percent - prev_opp_percent 
+    if opp_percent_diff > 0: total_damage += opp_percent_diff
+    print(total_damage)
+
     damage_taken = agent_percent_diff * damage_taken_weight
     damage_done = opp_percent_diff * damage_done_weight
 
@@ -265,7 +270,7 @@ def calculate_rewards(prev_state, curr_state):
 
     return distance_x, distance_y, damage_taken, damage_done, stock_lost, stock_taken 
 
-def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.1):
+def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.35):
     nothing_weight = 1
     for state_num, action_list in actions.items():  # Iterate over state numbers and associated actions
         for action in action_list:  # Iterate over actions for each state
@@ -273,30 +278,30 @@ def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rat
                 # Distance (x)
                 if dist_x != 0:
                     scaled_change = dist_x * learning_rate
-                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
                     state_data[state_num]["Actions"][action] -= scaled_change
                 # Distance (y)
                 if dist_y != 0:
                     scaled_change = dist_y * learning_rate
                     state_data[state_num]["Actions"][action] -= scaled_change
-                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
                 # Damage done
                 if damage_done != 0:
                     scaled_change = damage_done * learning_rate
                     state_data[state_num]["Actions"][action] += scaled_change
-                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
                 # Damage taken
                 if damage_taken != 0:
                     scaled_change = damage_taken * learning_rate
                     state_data[state_num]["Actions"][action] -= scaled_change
-                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
                 
                 if dist_x == 0 and dist_y == 0 and damage_done == 0: # if nothing happened
                     scaled_change = nothing_weight * learning_rate
                     state_data[state_num]["Actions"][action] -= scaled_change # make it less likely
 
 
-def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.1):
+def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.2):
     # Stocks
     stock_weight = 1 
     stock_change = stock_weight * learning_rate
@@ -313,13 +318,13 @@ def update_agent():
     with open(f"{CURRENT_DIR}/agent_data.json", "w") as json_file: 
         json.dump(state_data, json_file, indent=4)
 
-def record_results(stocks_taken):
+def record_results(damage):
     data = open(f"{CURRENT_DIR}/stats.json", "r")
     match_data = json.load(data)
     match_number = match_data["Current Match"]
     match_data["Matches"].append({
         "Match Number": match_number,
-        "Stocks Remaining": int(stocks_taken)
+        "Damage done": float(damage)
     })
 
     match_data["Current Match"] += 1
@@ -345,9 +350,7 @@ a2_performed_actions_long = set()
 a1_actions_long = {}
 a2_actions_long = {}
 current_frame = 0
-opp_stocks = 0
 consecutive_same_state = 0
-button_pressed = False
 
 prev_a1_state = None
 curr_a1_state = None
@@ -381,22 +384,6 @@ while True:
         # a2_A = gamestate.players[2].controller_state.button[melee.enums.Button.BUTTON_A]
         # a2_C = gamestate.players[2].controller_state.c_stick
 
-        # if button_pressed:
-        #     if a1_R : controller.release_button(melee.enums.Button.BUTTON_R)
-        #     if a1_Z : controller.release_button(melee.enums.Button.BUTTON_Z)
-        #     if a1_A : controller.release_button(melee.enums.Button.BUTTON_A)
-        #     if a1_C[0] != 0.5 or a1_C[1] != 0.5: controller.release_button(melee.enums.Button.BUTTON_C)
-
-        #     if a2_R : controller_opp.release_button(melee.enums.Button.BUTTON_R)
-        #     if a2_Z : controller_opp.release_button(melee.enums.Button.BUTTON_Z)
-        #     if a2_A : controller_opp.release_button(melee.enums.Button.BUTTON_A)
-        #     if a2_C[0] != 0.5 or a2_C[1] != 0.5: controller_opp.release_button(melee.enums.Button.BUTTON_C)
-
-        # if prev_a1_state and prev_a2_state:
-        #     print(f'before: {prev_a1_state}')
-        #     print(f'after: {curr_a1_state}')
-        #     print('-------------------------------------------------')
-
         # perform actions
         if consecutive_same_state < 2:
             a1_action = get_action(a1_state_num)
@@ -412,15 +399,6 @@ while True:
         a1_wait = a1_action_func(controller)
         a2_wait = a2_action_func(controller_opp)
         wait_duration = max(a1_wait, a2_wait)
-
-        # else:
-        #     a1_action = "Release"
-        #     a2_action = "Release"
-        #     button_pressed = False
-            
-        # if a1_action != "Release":
-        #     print(f'A1: {a1_action}')
-        #     print(f'A2: {a2_action}')
 
         # Update actions and state dictionary
         a1_performed_actions.add(a1_action)
@@ -495,9 +473,9 @@ while True:
             curr_a2_state = None
             update_agent()
             print('updated agent')
-
-            # record_results(opp_stocks)
-
+            record_results(total_damage)
+            total_damage = 0
+            print('recorded results')
 
         melee.MenuHelper.menu_helper_simple(gamestate,
                                             controller,
