@@ -188,7 +188,7 @@ def get_current_state(g, agent_port, opponent_port):
     x_pos = get_x_pos(g, agent_port)
     offstage = is_offstage(g, agent_port)
     airborne = is_airborne(g, opponent_port)
-    agent_right = facing(g, agent_port)
+    direction = facing(g, agent_port)
     agent_stocks = get_stock(g, agent_port)
     opp_stocks = get_stock(g, opponent_port)
 
@@ -201,10 +201,10 @@ def get_current_state(g, agent_port, opponent_port):
             x_dist >= state_info["X_Distance"][0] and x_dist <= state_info["X_Distance"][1] and
             y_dist >= state_info["Y_Distance"][0] and y_dist <= state_info["Y_Distance"][1] and
             offstage == state_info["Offstage"] and
-            airborne == state_info["Airborne"] 
-            # agent_right == state_info["Agent Right"]
+            airborne == state_info["Airborne"] and 
+            direction == state_info["Facing"]
         ):
-            return state_num, (agent_percent, opp_percent, x_dist, y_dist, x_pos, offstage, airborne, agent_right, agent_stocks, opp_stocks)
+            return state_num, (agent_percent, opp_percent, x_dist, y_dist, x_pos, offstage, airborne, direction, agent_stocks, opp_stocks)
 
     return None 
 
@@ -221,6 +221,7 @@ def get_action(state_num):
 
     # Normalize the probabilities to sum to 1
     actions = {action: prob / total_prob for action, prob in actions.items()}
+    state_data[str(state_num)]["Actions"] = actions
 
     rand_num = random.uniform(0, 1)
     cumulative_prob = 0
@@ -239,10 +240,10 @@ def calculate_rewards(prev_state, curr_state):
     curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks = unpack_state(curr_state)
     
     # weights subject to change
-    distance_x_weight = 0.25
-    distance_y_weight = 0.1
-    damage_taken_weight = 0.015
-    damage_done_weight = 0.03
+    distance_x_weight = 0.1
+    distance_y_weight = 0.08
+    damage_taken_weight = 0.15
+    damage_done_weight = 0.08
     
     # X/Y Position
     x_diff = curr_x_dist - prev_x_dist 

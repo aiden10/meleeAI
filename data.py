@@ -2,12 +2,13 @@ import json
 import os
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-percent_ranges = [(0, 15), (15, 40), (40, 70), (70, 100), (100, 1000)]
+percent_ranges = [(0, 50), (50, 1000)]
 x_dist_ranges = [(0, 5), (5, 16), (16, 30), (30, 50), (50, 70), (70, 1000)]
 y_dist_ranges = [(0, 5), (5, 16), (16, 30), (30, 50), (50, 70), (70, 1000)]
 x_pos_ranges = [(-1000, -85), (-85, -70), (-70, 70), (70, 85), (85, 1000)]
 airborne = [True, False]
 offstage = [True, False]
+facing = [True, False]
 def create_initial_agent():
     states = []
     for agent_percent in percent_ranges:
@@ -17,16 +18,18 @@ def create_initial_agent():
                     for x_pos in x_pos_ranges:
                         for is_airborne in airborne:
                             for is_offstage in offstage:
-                                state = {
-                                    "Agent Percentage": agent_percent,
-                                    "Opponent Percentage": opp_percent,
-                                    "X_Distance": x_range,
-                                    "Y_Distance": y_range,
-                                    "X_Position": x_pos,
-                                    "Airborne": is_airborne,
-                                    "Offstage": is_offstage,
-                                }
-                                states.append(state)
+                                for direction in facing:
+                                    state = {
+                                        "Agent Percentage": agent_percent,
+                                        "Opponent Percentage": opp_percent,
+                                        "X_Distance": x_range,
+                                        "Y_Distance": y_range,
+                                        "X_Position": x_pos,
+                                        "Airborne": is_airborne,
+                                        "Offstage": is_offstage,
+                                        "Facing": direction
+                                    }
+                                    states.append(state)
 
     actions = ["Jab", "L_Tilt", "R_Tilt", "U_Tilt", "D_Tilt",
                 "L_Smash", "R_Smash", "U_Smash", "D_Smash",
@@ -60,3 +63,5 @@ def update_movement():
     json.dump(state_data, json_file, indent=4)
     json_file.close()
     print('done')
+
+create_initial_agent()
