@@ -60,5 +60,3 @@ def update_movement():
     json.dump(state_data, json_file, indent=4)
     json_file.close()
     print('done')
-
-create_initial_agent()

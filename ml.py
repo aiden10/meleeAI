@@ -241,8 +241,8 @@ def calculate_rewards(prev_state, curr_state):
     # weights subject to change
     distance_x_weight = 0.1
     distance_y_weight = 0.1
-    damage_taken_weight = 0.2
-    damage_done_weight = 0.1
+    damage_taken_weight = 0.15
+    damage_done_weight = 0.3
     
     # X/Y Position
     x_diff = curr_x_dist - prev_x_dist 
@@ -264,39 +264,44 @@ def calculate_rewards(prev_state, curr_state):
 
     return distance_x, distance_y, damage_taken, damage_done, stock_lost, stock_taken 
 
-def update_odds(dist_x, dist_y, damage_taken, damage_done, actions):
+def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.1):
     for state_num, action_list in actions.items():  # Iterate over state numbers and associated actions
         for action in action_list:  # Iterate over actions for each state
             if action != "Release":
                 # Distance (x)
                 if dist_x != 0:
-                    print(f'{action} of state #{state_num}: changed by {dist_x}')
-                    state_data[state_num]["Actions"][action] -= dist_x
+                    scaled_change = dist_x * learning_rate
+                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    state_data[state_num]["Actions"][action] -= scaled_change
                 # Distance (y)
                 if dist_y != 0:
-                    state_data[state_num]["Actions"][action] -= dist_y
-                    print(f'{action} of state #{state_num}: changed by {dist_y}')
+                    scaled_change = dist_y * learning_rate
+                    state_data[state_num]["Actions"][action] -= scaled_change
+                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
                 # Damage done
                 if damage_done != 0:
-                    state_data[state_num]["Actions"][action] += damage_done
-                    print(f'{action} of state #{state_num}: changed by {damage_done}')
+                    scaled_change = damage_done * learning_rate
+                    state_data[state_num]["Actions"][action] += scaled_change
+                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
                 # Damage taken
                 if damage_taken != 0:
-                    state_data[state_num]["Actions"][action] -= damage_taken
-                    print(f'{action} of state #{state_num}: changed by {damage_taken}')
+                    scaled_change = damage_taken * learning_rate
+                    state_data[state_num]["Actions"][action] -= scaled_change
+                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
 
 
-def update_odds_long(stock_lost, stock_taken, actions_long):
+def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.1):
     # Stocks
-    stock_weight = 0.5 
+    stock_weight = 0.75 
+    stock_change = stock_weight * learning_rate
     for state_num, action_list in actions_long.items():  
         for action in action_list:  
             if stock_lost:
-                state_data[state_num]["Actions"][action] += (stock_weight)
-                print(f'{action} of state #{state_num}: changed by {stock_weight}')
-            if stock_taken:
-                state_data[state_num]["Actions"][action] -= (stock_weight)
-                print(f'{action} of state #{state_num}: changed by -{stock_weight}')
+                state_data[state_num]["Actions"][action] += (stock_change)
+                print(f'{action} of state #{state_num}: changed by {stock_change}')
+            # if stock_taken:
+            #     state_data[state_num]["Actions"][action] -= (stock_change)
+            #     print(f'{action} of state #{state_num}: changed by -{stock_change}')
 
 def update_agent():
     with open(f"{CURRENT_DIR}/agent_data.json", "w") as json_file: 
@@ -484,6 +489,7 @@ while True:
             prev_a2_state = None
             curr_a2_state = None
             update_agent()
+            print('updated agent')
 
             # record_results(opp_stocks)
 
