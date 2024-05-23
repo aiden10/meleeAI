@@ -134,7 +134,7 @@ def D_Throw(controller):
 
 def Shield(controller):
     controller.press_button(melee.enums.Button.BUTTON_R)
-    return 100
+    return 60
 
 def Release(controller):
     controller.release_all()
@@ -153,27 +153,27 @@ def R_Dodge(controller):
 
 def Jump(controller):
     controller.press_button(melee.enums.Button.BUTTON_X)
-    return 120
+    return 100
 
 def L_Walk(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.65, 0.5)
-    return 60
+    return 30
 
 def R_Walk(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.35, 0.5)
-    return 60
+    return 30
 
 def L_Dash(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
-    return 60
+    return 30
 
 def R_Dash(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
-    return 60
+    return 30
 
 def get_random_action():
     actions = [R_Dash, L_Dash, R_Walk, L_Walk, Jump, R_Dodge, L_Dodge, Release, Shield, L_Throw, R_Throw, D_Throw, U_Throw,
@@ -239,10 +239,10 @@ def calculate_rewards(prev_state, curr_state):
     curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks = unpack_state(curr_state)
     
     # weights subject to change
-    distance_x_weight = 0.1
+    distance_x_weight = 0.25
     distance_y_weight = 0.1
-    damage_taken_weight = 0.15
-    damage_done_weight = 0.3
+    damage_taken_weight = 0.015
+    damage_done_weight = 0.03
     
     # X/Y Position
     x_diff = curr_x_dist - prev_x_dist 
@@ -265,6 +265,7 @@ def calculate_rewards(prev_state, curr_state):
     return distance_x, distance_y, damage_taken, damage_done, stock_lost, stock_taken 
 
 def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.1):
+    nothing_weight = 1
     for state_num, action_list in actions.items():  # Iterate over state numbers and associated actions
         for action in action_list:  # Iterate over actions for each state
             if action != "Release":
@@ -288,19 +289,23 @@ def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rat
                     scaled_change = damage_taken * learning_rate
                     state_data[state_num]["Actions"][action] -= scaled_change
                     print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                
+                if dist_x == 0 and dist_y == 0 and damage_done == 0: # if nothing happened
+                    scaled_change = nothing_weight * learning_rate
+                    state_data[state_num]["Actions"][action] -= scaled_change # make it less likely
 
 
 def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.1):
     # Stocks
-    stock_weight = 0.75 
+    stock_weight = 1 
     stock_change = stock_weight * learning_rate
     for state_num, action_list in actions_long.items():  
         for action in action_list:  
             if stock_lost:
-                state_data[state_num]["Actions"][action] += (stock_change)
-                print(f'{action} of state #{state_num}: changed by {stock_change}')
+                state_data[state_num]["Actions"][action] -= (stock_change)
+                print(f'{action} of state #{state_num}: changed by -{stock_change}')
             # if stock_taken:
-            #     state_data[state_num]["Actions"][action] -= (stock_change)
+            #     state_data[state_num]["Actions"][action] += (stock_change)
             #     print(f'{action} of state #{state_num}: changed by -{stock_change}')
 
 def update_agent():
@@ -354,7 +359,6 @@ while True:
     if not waiting: gamestate = console.step()
     if gamestate.menu_state in [melee.Menu.IN_GAME, melee.Menu.SUDDEN_DEATH]:
         current_frame += 1
-
         a1_performed_actions = set()
         a2_performed_actions = set()
 
