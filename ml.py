@@ -9,6 +9,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 console = melee.Console(path=r"C:\Users\aiden\AppData\Roaming\Slippi Launcher\netplay")
 json_file = open(f"{CURRENT_DIR}/agent_data.json", "r")
 state_data = json.load(json_file)
+print('loaded data')
 total_damage = 0
 
 # Observations
@@ -28,6 +29,9 @@ def get_y_dist(g):
 def get_x_pos(g, port):
     return g.players[port].position.x
 
+def get_y_pos(g, port):
+    return g.players[port].position.y
+
 def is_offstage(g, port):
     return g.players[port].off_stage
 
@@ -43,47 +47,47 @@ def get_stock(g, port):
 # Basic Attacks
 def Jab(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
-    return 27
+    return 17
 def L_Tilt(controller):
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.4, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.35, 0.5)
-    return 35
+    return 25
 
 def R_Tilt(controller):
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.6, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.65, 0.5)
-    return 35
+    return 25
 
 def U_Tilt(controller):
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.5, 0.6)
     controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0.65)
-    return 39
+    return 29
 
 def D_Tilt(controller):
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.5, 0.4)
     controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0.35)
-    return 49
+    return 39
 
 # Smash Attacks
 def L_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0, 0.5)
-    return 49
+    return 5
 
 def R_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 1, 0.5)
-    return 49
+    return 5
 
 def U_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 1)
-    return 54
+    return 5
 
 def D_Smash(controller):
     controller.press_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0)
-    return 64
+    return 5
 
 # Special Attacks
 def N_Special(controller):
@@ -105,37 +109,37 @@ def D_Special(controller):
 def L_DAttack(controller):
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_A)
-    return 60
+    return 50
 
 def R_DAttack(controller):
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_A)
-    return 60
+    return 50
 
 # Throws
 def L_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0, 0.5)
-    return 29
+    return 19
 
 def R_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 1, 0.5)
-    return 29
+    return 19
 
 def U_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 1)
-    return 29
+    return 19
 
 def D_Throw(controller):
     controller.press_button(melee.enums.Button.BUTTON_Z)
     controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0)
-    return 29
+    return 19
 
 def Shield(controller):
     controller.press_button(melee.enums.Button.BUTTON_R)
-    return 60
+    return 50
 
 def Release(controller):
     controller.release_all()
@@ -143,42 +147,41 @@ def Release(controller):
 
 # Movements
 def L_Dodge(controller):
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.9, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_R)
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
-    return 45
+    return 30
 
 def R_Dodge(controller):
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.1, 0.5)
     controller.press_button(melee.enums.Button.BUTTON_R)
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
-    return 45
+    return 30
 
 def Jump(controller):
     controller.press_button(melee.enums.Button.BUTTON_X)
-    return 100
+    return 8
 
 def L_Walk(controller):
-    controller.release_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.65, 0.5)
-    return 30
-
-def R_Walk(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.35, 0.5)
     return 30
 
-def L_Dash(controller):
+def R_Walk(controller):
     controller.release_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.65, 0.5)
     return 30
+
+def L_Dash(controller):
+    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
+    return 20
 
 def R_Dash(controller):
-    controller.release_button(melee.enums.Button.BUTTON_A)
     controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
-    return 30
+    return 20
 
 def get_random_action():
-    actions = [R_Dash, L_Dash, R_Walk, L_Walk, Jump, R_Dodge, L_Dodge, Release, Shield, L_Throw, R_Throw, D_Throw, U_Throw,
-               L_DAttack, R_DAttack, L_Smash, R_Smash, D_Smash, U_Smash, L_Tilt, R_Tilt, U_Tilt, D_Tilt, Jab]
+    actions = [R_Dash, L_Dash, R_Walk, L_Walk, Jump, Release,
+                L_Smash, R_Smash, D_Smash, U_Smash, L_Tilt, R_Tilt, U_Tilt, D_Tilt, Jab]
+    
     return actions[random.randint(0, len(actions) - 1)]
 
 def get_current_state(g, agent_port, opponent_port):
@@ -187,6 +190,9 @@ def get_current_state(g, agent_port, opponent_port):
     x_dist = get_x_dist(g)
     y_dist = get_y_dist(g)
     x_pos = get_x_pos(g, agent_port)
+    y_pos = get_y_pos(g, agent_port)
+    opp_x_pos = get_x_pos(g, opponent_port)
+    opp_y_pos = get_y_pos(g, opponent_port)
     offstage = is_offstage(g, agent_port)
     airborne = is_airborne(g, opponent_port)
     direction = facing(g, agent_port)
@@ -198,14 +204,17 @@ def get_current_state(g, agent_port, opponent_port):
         if (
             # agent_percent >= state_info["Agent Percentage"][0] and agent_percent <= state_info["Agent Percentage"][1] and
             # opp_percent >= state_info["Opponent Percentage"][0] and opp_percent <= state_info["Opponent Percentage"][1] and
-            x_pos >= state_info["X_Position"][0] and x_pos <= state_info["X_Position"][1] and
-            x_dist >= state_info["X_Distance"][0] and x_dist <= state_info["X_Distance"][1] and
-            y_dist >= state_info["Y_Distance"][0] and y_dist <= state_info["Y_Distance"][1] and
-            offstage == state_info["Offstage"] and
-            airborne == state_info["Airborne"] and 
-            direction == state_info["Facing"]
+            x_pos >= state_info["Agent_X_Position"][0] and x_pos <= state_info["Agent_X_Position"][1] and
+            y_pos >= state_info["Agent_Y_Position"][0] and y_pos <= state_info["Agent_Y_Position"][1] and
+            opp_x_pos >= state_info["Opponent_X_Position"][0] and opp_x_pos <= state_info["Opponent_X_Position"][1] and
+            opp_y_pos >= state_info["Opponent_Y_Position"][0] and opp_y_pos <= state_info["Opponent_Y_Position"][1]
+            # x_dist >= state_info["X_Distance"][0] and x_dist <= state_info["X_Distance"][1] and
+            # y_dist >= state_info["Y_Distance"][0] and y_dist <= state_info["Y_Distance"][1] and
+            # offstage == state_info["Offstage"] and
+            # airborne == state_info["Airborne"] and 
+            # direction == state_info["Facing"]
         ):
-            return state_num, (agent_percent, opp_percent, x_dist, y_dist, x_pos, offstage, airborne, direction, agent_stocks, opp_stocks)
+            return state_num, (agent_percent, opp_percent, x_dist, y_dist, x_pos, offstage, airborne, direction, agent_stocks, opp_stocks, y_pos)
 
     return None 
 
@@ -234,12 +243,12 @@ def get_action(state_num):
     return "Release"  # Fallback in case no action is selected
         
 def unpack_state(state):
-    return state[0], state[1], state[2], state[3], state[4], state[5], state[6], state[7], state[8], state[9]
+    return state[0], state[1], state[2], state[3], state[4], state[5], state[6], state[7], state[8], state[9], state[10]
 
 def calculate_rewards(prev_state, curr_state):
     global total_damage
-    prev_agent_percent, prev_opp_percent, prev_x_dist, prev_y_dist, prev_x_pos, _, _, _, prev_agent_stocks, prev_opp_stocks = unpack_state(prev_state)
-    curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks = unpack_state(curr_state)
+    prev_agent_percent, prev_opp_percent, prev_x_dist, prev_y_dist, prev_x_pos, _, _, _, prev_agent_stocks, prev_opp_stocks, prev_y_pos = unpack_state(prev_state)
+    curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks, curr_y_pos = unpack_state(curr_state)
     
     # weights subject to change
     distance_x_weight = 0.1
@@ -247,17 +256,22 @@ def calculate_rewards(prev_state, curr_state):
     damage_taken_weight = 0.15
     damage_done_weight = 0.08
     
+    distance_x = 0
+    distance_y = 0
+
     # X/Y Position
-    x_diff = curr_x_dist - prev_x_dist 
-    y_diff = curr_y_dist - prev_y_dist
-    distance_x = x_diff * distance_x_weight
-    distance_y = y_diff * distance_y_weight
+    if curr_x_pos != prev_x_pos: # don't want to include the opponent's movement
+        x_diff = curr_x_dist - prev_x_dist
+        distance_x = x_diff * distance_x_weight
+    if curr_y_pos != prev_y_pos:
+        y_diff = curr_y_dist - prev_y_dist
+        distance_y = y_diff * distance_y_weight
 
     # Percentages
     agent_percent_diff = curr_agent_percent - prev_agent_percent # Damage taken 
     opp_percent_diff = curr_opp_percent - prev_opp_percent 
-    if opp_percent_diff > 0: total_damage += opp_percent_diff
-    print(total_damage)
+    if opp_percent_diff > 0:
+        total_damage += opp_percent_diff
 
     damage_taken = agent_percent_diff * damage_taken_weight
     damage_done = opp_percent_diff * damage_done_weight
@@ -270,7 +284,7 @@ def calculate_rewards(prev_state, curr_state):
 
     return distance_x, distance_y, damage_taken, damage_done, stock_lost, stock_taken 
 
-def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.35):
+def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.1):
     nothing_weight = 1
     for state_num, action_list in actions.items():  # Iterate over state numbers and associated actions
         for action in action_list:  # Iterate over actions for each state
@@ -278,38 +292,44 @@ def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rat
                 # Distance (x)
                 if dist_x != 0:
                     scaled_change = dist_x * learning_rate
-                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    print(f'Distance X: {action} of state #{state_num}: changed by {scaled_change}')
                     state_data[state_num]["Actions"][action] -= scaled_change
                 # Distance (y)
                 if dist_y != 0:
                     scaled_change = dist_y * learning_rate
                     state_data[state_num]["Actions"][action] -= scaled_change
-                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    print(f'Distance Y: {action} of state #{state_num}: changed by {scaled_change}')
                 # Damage done
                 if damage_done != 0:
                     scaled_change = damage_done * learning_rate
                     state_data[state_num]["Actions"][action] += scaled_change
-                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                    print(f'Damage Done: {action} of state #{state_num}: changed by {scaled_change}')
                 # Damage taken
-                if damage_taken != 0:
-                    scaled_change = damage_taken * learning_rate
-                    state_data[state_num]["Actions"][action] -= scaled_change
-                    # print(f'{action} of state #{state_num}: changed by {scaled_change}')
-                
+                # if damage_taken != 0:
+                #     scaled_change = damage_taken * learning_rate
+                #     state_data[state_num]["Actions"][action] -= scaled_change
+                #     print(f'{action} of state #{state_num}: changed by {scaled_change}')
+                #     print(f'Damage Taken: {action} of state #{state_num}: changed by {scaled_change}')
+
                 if dist_x == 0 and dist_y == 0 and damage_done == 0: # if nothing happened
                     scaled_change = nothing_weight * learning_rate
                     state_data[state_num]["Actions"][action] -= scaled_change # make it less likely
 
-
 def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.2):
     # Stocks
-    stock_weight = 1 
+    stock_weight = 0.1
+    sd_penalty = 0.2
     stock_change = stock_weight * learning_rate
-    for state_num, action_list in actions_long.items():  
-        for action in action_list:  
-            if stock_lost:
+    if stock_lost:
+        for state_num, action_list in actions_long.items():
+            for action in action_list:  
                 state_data[state_num]["Actions"][action] -= (stock_change)
-                print(f'{action} of state #{state_num}: changed by -{stock_change}')
+                print(f'{action} of state #{state_num}: changed by -{sd_penalty}')
+
+                if action == 'L_Walk' or action == 'R_Walk' or action == 'L_Dash' or action == 'R_Dash':
+                    state_data[state_num]["Actions"][action] -= (sd_penalty)
+                    print(f'{action} of state #{state_num}: changed by -{sd_penalty}')
             # if stock_taken:
             #     state_data[state_num]["Actions"][action] += (stock_change)
             #     print(f'{action} of state #{state_num}: changed by -{stock_change}')

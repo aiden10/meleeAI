@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import json
 import os
-import numpy as np
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
