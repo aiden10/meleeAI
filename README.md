@@ -16,7 +16,7 @@ There could be a number of reasons but I think it's most likely one of the follo
 - The timing of capturing the current game state after an action has been performed
 - Modifying the probabilities too much
 - Actions being performed incorrectly
+- Not enough training
+- Damage done may not be an accurate indicator of performance. At first I assumed that as it improves more damage would be done since attacks would land more and recovery would also improve, but I realize now that if attacks land more but recovery doesn't improve, then the graph won't reflect the improvement 
 
-![Figure_1](https://github.com/aiden10/meleeAI/assets/51337166/e21ed015-2cff-49e8-ac1e-ac34bd043b94)
-
-More testing is needed.
+![Figure_1](https://github.com/aiden10/meleeAI/assets/51337166/f8d425ea-555a-4ea3-be83-f2a94c146009)
