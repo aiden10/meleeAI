@@ -27,6 +27,10 @@ def create_plot():
     ax.plot(df['match_number'], df['rolling_avg'], label=f'{window_size}-Game Rolling Average', color='orange')
     ax.scatter(df['match_number'], df['damage_done'], alpha=0.3, s=10)  
 
+    low_damage = df[df['damage_done'] < 10]
+    
+    ax.scatter(low_damage['match_number'], low_damage['damage_done'], color='red', alpha=0.6, s=10, label='Damage < 30')
+
     ax.set(xlabel='Game Number', ylabel='Total Damage Done', title='Training')
     ax.grid()
     ax.legend()

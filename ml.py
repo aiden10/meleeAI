@@ -292,7 +292,7 @@ def calculate_rewards(prev_state, curr_state):
 
     return distance_x, distance_y, damage_taken, damage_done, stock_lost, stock_taken 
 
-def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.1):
+def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.05):
     nothing_weight = 1
     for state_num, action_list in actions.items():  # Iterate over state numbers and associated actions
         for action in action_list:  # Iterate over actions for each state
@@ -337,10 +337,10 @@ def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rat
 
                         print(f'Nothing Changed: {action} changed by -{scaled_change}')
 
-def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.2):
+def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.1):
     # Stocks
     stock_weight = 0.1
-    death_penalty = 0.065
+    death_penalty = 0.065 * learning_rate
     stock_change = stock_weight * learning_rate
     if stock_lost:
         for state_num, action_list in actions_long.items():
