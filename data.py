@@ -33,6 +33,10 @@ def create_initial_agent():
     for state_id, state in enumerate(states, start=1):
         action_probs = {action: 1/len(actions) for action in actions}
         data[state_id] = {"State": state, "Actions": action_probs}
+        data[state_id]["Actions"]["L_Walk"] += 0.05
+        data[state_id]["Actions"]["R_Walk"] += 0.05
+        data[state_id]["Actions"]["L_Dash"] += 0.05
+        data[state_id]["Actions"]["R_Dash"] += 0.05
 
     with open(f"{CURRENT_DIR}/agent_data.json", "w") as json_file:
         json.dump(data, json_file, indent=4)
