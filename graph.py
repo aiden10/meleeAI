@@ -6,8 +6,11 @@ import pandas as pd
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def create_plot():
-    with open(f"{CURRENT_DIR}/stats.json", "r") as data:
+regular_path = os.path.join(CURRENT_DIR, 'stats.json')
+gym_path = os.path.join(CURRENT_DIR, 'gym', 'stats.json')
+
+def create_plot(path):
+    with open(path, "r") as data:
         match_data = json.load(data)
     matches = match_data["Matches"]
 
@@ -36,5 +39,6 @@ def create_plot():
 
     plt.show()
 
-create_plot()
+create_plot(gym_path)
 
+# 905 started using pretrained agent

@@ -11,21 +11,24 @@ x_pos_ranges = [
 y_pos_ranges = [(-1000, 0), (0, 5), (5, 10), (10, 20), (20, 40), (40, 60), (60, 1000)]
 offstage = [True, False]
 facing = [True, False]
+jumps_left = [True, False]
 def create_initial_agent():
     states = []
     for agent_x_pos in x_pos_ranges:
         for agent_y_pos in y_pos_ranges:
             for opponent_x_pos in x_pos_ranges:
                 for opponent_y_pos in y_pos_ranges:
-                    state = {
-                        "Agent_X_Position": agent_x_pos,
-                        "Agent_Y_Position": agent_y_pos,
-                        "Opponent_X_Position": opponent_x_pos,
-                        "Opponent_Y_Position": opponent_y_pos,
-                    }
-                    states.append(state)
-
-    actions = ["Jab", "L_Tilt", "R_Tilt", "U_Tilt", "D_Tilt",
+                    for jumps in jumps_left:
+                        state = {
+                            "Agent_X_Position": agent_x_pos,
+                            "Agent_Y_Position": agent_y_pos,
+                            "Opponent_X_Position": opponent_x_pos,
+                            "Opponent_Y_Position": opponent_y_pos,
+                            "Jumps_Left": jumps
+                        }
+                        states.append(state)
+                        
+    actions = ["L_Tilt", "R_Tilt", "U_Tilt",
                 "L_Smash", "R_Smash", "U_Smash", "D_Smash", "Release",
                 "Jump", "L_Walk", "R_Walk", "L_Dash", "R_Dash"]
 

@@ -3,188 +3,15 @@ import json
 import random
 import sys
 import os
-import random
+from functions import *
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BUFFER = 20
-ATTACK_LIST = ['L_Tilt', 'R_Tilt', 'U_Tilt', 'D_Tilt', 'L_Smash', 'R_Smash', 'U_Smash', 'D_Smash', 'Jab']
+ATTACK_LIST = ['L_Tilt', 'R_Tilt', 'U_Tilt', 'L_Smash', 'R_Smash', 'U_Smash', 'D_Smash']
 console = melee.Console(path=r"C:\Users\aiden\AppData\Roaming\Slippi Launcher\netplay")
 json_file = open(f"{CURRENT_DIR}/agent_data.json", "r")
 state_data = json.load(json_file)
 print('loaded data')
 total_damage = 0
-
-# Observations
-def get_percent(g, port):
-    return g.players[port].percent
-
-def get_x_dist(g):
-    agent_x = g.players[1].position.x
-    opp_x = g.players[2].position.x
-    return abs(agent_x - opp_x)
-
-def get_y_dist(g):
-    agent_y = g.players[1].position.y
-    opp_y = g.players[2].position.y
-    return abs(agent_y - opp_y)
-
-def get_x_pos(g, port):
-    return g.players[port].position.x
-
-def get_y_pos(g, port):
-    return g.players[port].position.y
-
-def is_offstage(g, port):
-    return g.players[port].off_stage
-
-def is_airborne(g, port):
-    return g.players[port].on_ground
-
-def facing(g, port):
-    return g.players[port].facing
-
-def get_stock(g, port):
-    return g.players[port].stock
-
-# Basic Attacks
-def Jab(controller):
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    return 17
-def L_Tilt(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.4, 0.5)
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    return 25
-
-def R_Tilt(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.6, 0.5)
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    return 25
-
-def U_Tilt(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.5, 0.6)
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    return 29
-
-def D_Tilt(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.5, 0.4)
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    return 39
-
-# Smash Attacks
-def L_Smash(controller):
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0, 0.5)
-    return 5
-
-def R_Smash(controller):
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 1, 0.5)
-    return 5
-
-def U_Smash(controller):
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 1)
-    return 5
-
-def D_Smash(controller):
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0)
-    return 5
-
-# Special Attacks
-def N_Special(controller):
-    controller.press_button(melee.enums.Button.BUTTON_B)
-def L_Special(controller):
-    controller.press_button(melee.enums.Button.BUTTON_B)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0, 0.5)
-def R_Special(controller):
-    controller.press_button(melee.enums.Button.BUTTON_B)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 1, 0.5)
-def U_Special(controller):
-    controller.press_button(melee.enums.Button.BUTTON_B)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 1)
-def D_Special(controller):
-    controller.press_button(melee.enums.Button.BUTTON_B)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0)
-
-# Dash Attacks
-def L_DAttack(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    return 50
-
-def R_DAttack(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
-    controller.press_button(melee.enums.Button.BUTTON_A)
-    return 50
-
-# Throws
-def L_Throw(controller):
-    controller.press_button(melee.enums.Button.BUTTON_Z)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0, 0.5)
-    return 19
-
-def R_Throw(controller):
-    controller.press_button(melee.enums.Button.BUTTON_Z)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 1, 0.5)
-    return 19
-
-def U_Throw(controller):
-    controller.press_button(melee.enums.Button.BUTTON_Z)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 1)
-    return 19
-
-def D_Throw(controller):
-    controller.press_button(melee.enums.Button.BUTTON_Z)
-    controller.tilt_analog(melee.enums.Button.BUTTON_C, 0.5, 0)
-    return 19
-
-def Shield(controller):
-    controller.press_button(melee.enums.Button.BUTTON_R)
-    return 50
-
-def Release(controller):
-    controller.release_all()
-    return 15
-
-# Movements
-def L_Dodge(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.9, 0.5)
-    controller.press_button(melee.enums.Button.BUTTON_R)
-    return 30
-
-def R_Dodge(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.1, 0.5)
-    controller.press_button(melee.enums.Button.BUTTON_R)
-    return 30
-
-def Jump(controller):
-    controller.press_button(melee.enums.Button.BUTTON_X)
-    return 8
-
-def L_Walk(controller):
-    controller.release_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.35, 0.5)
-    return 30
-
-def R_Walk(controller):
-    controller.release_button(melee.enums.Button.BUTTON_A)
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0.65, 0.5)
-    return 30
-
-def L_Dash(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 0, 0.5)
-    return 20
-
-def R_Dash(controller):
-    controller.tilt_analog(melee.enums.Button.BUTTON_MAIN, 1, 0.5)
-    return 20
-
-def get_random_action():
-    actions = [R_Dash, L_Dash, R_Walk, L_Walk, Jump, Release,
-                L_Smash, R_Smash, D_Smash, U_Smash, L_Tilt, R_Tilt, U_Tilt, D_Tilt, Jab]
-    
-    return actions[random.randint(0, len(actions) - 1)]
 
 def get_current_state(g, agent_port, opponent_port):
     agent_percent = get_percent(g, agent_port)
@@ -200,6 +27,7 @@ def get_current_state(g, agent_port, opponent_port):
     direction = facing(g, agent_port)
     agent_stocks = get_stock(g, agent_port)
     opp_stocks = get_stock(g, opponent_port)
+    agent_jumps = get_jumps(g, agent_port) > 0
 
     for state_num, data in state_data.items():
         state_info = data["State"]
@@ -209,7 +37,8 @@ def get_current_state(g, agent_port, opponent_port):
             x_pos >= state_info["Agent_X_Position"][0] and x_pos <= state_info["Agent_X_Position"][1] and
             y_pos >= state_info["Agent_Y_Position"][0] and y_pos <= state_info["Agent_Y_Position"][1] and
             opp_x_pos >= state_info["Opponent_X_Position"][0] and opp_x_pos <= state_info["Opponent_X_Position"][1] and
-            opp_y_pos >= state_info["Opponent_Y_Position"][0] and opp_y_pos <= state_info["Opponent_Y_Position"][1]
+            opp_y_pos >= state_info["Opponent_Y_Position"][0] and opp_y_pos <= state_info["Opponent_Y_Position"][1] and
+            agent_jumps == state_info["Jumps_Left"]
             # x_dist >= state_info["X_Distance"][0] and x_dist <= state_info["X_Distance"][1] and
             # y_dist >= state_info["Y_Distance"][0] and y_dist <= state_info["Y_Distance"][1] and
             # offstage == state_info["Offstage"] and
@@ -220,7 +49,7 @@ def get_current_state(g, agent_port, opponent_port):
 
     return None 
 
-def get_action(state_num, learning_rate = 0.1):
+def get_action(state_num, learning_rate = 0.01):
     recover_weight = 1
     actions = state_data[str(state_num)]["Actions"]
 
@@ -259,8 +88,6 @@ def calculate_rewards(prev_state, curr_state):
     curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks, curr_y_pos = unpack_state(curr_state)
     
     # weights subject to change
-    distance_x_weight = 0.2
-    distance_y_weight = 0.1
     damage_taken_weight = 0.15
     damage_done_weight = 0.08
     
@@ -268,10 +95,10 @@ def calculate_rewards(prev_state, curr_state):
     distance_y = 0
 
     # X/Y Position
-    if curr_x_pos > (prev_x_pos + 5) or curr_x_pos < (prev_x_pos - 5): # don't want to include the opponent's movement
-        distance_x = distance_x_weight
-    if curr_y_pos > (prev_y_pos + 3) or curr_y_pos < (prev_y_pos - 3):
-        distance_y = distance_y_weight
+    if abs(curr_x_pos - prev_x_pos) > 5 and curr_x_dist < prev_x_dist: # don't want to include the opponent's movement
+        distance_x = (prev_x_dist - curr_x_dist)
+    if abs(curr_y_pos - prev_y_pos) > 5 and curr_y_dist < prev_y_dist:
+        distance_y = (prev_y_dist - curr_y_dist)
 
     # Percentages
     agent_percent_diff = curr_agent_percent - prev_agent_percent # Damage taken 
@@ -290,7 +117,7 @@ def calculate_rewards(prev_state, curr_state):
 
     return distance_x, distance_y, damage_taken, damage_done, stock_lost, stock_taken 
 
-def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.05):
+def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.001):
     nothing_weight = 1
     for state_num, action_list in actions.items():  # Iterate over state numbers and associated actions
         for action in action_list:  # Iterate over actions for each state
@@ -336,7 +163,7 @@ def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rat
                         print(f'Nothing Changed: {action} changed by -{scaled_change}')
                         print(f'Nothing Changed: Movements changed by {scaled_change}')
 
-def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.1):
+def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.01):
     # Stocks
     stock_weight = 0.15
     death_penalty = 0.05 * learning_rate
@@ -458,19 +285,13 @@ while True:
         target_frame = current_frame + wait_duration
         while current_frame < target_frame:
             waiting = True
-            console.step()
+            gamestate = console.step()
             current_frame += 1
 
         # Clear inputs after action has been performed
         Release(controller)
         Release(controller_opp)
         
-        buffer_wait = current_frame + BUFFER
-        while current_frame < buffer_wait: # Add a delay after each action
-            waiting = True
-            console.step()
-            current_frame += 1             
-
     # After waiting
         waiting = False
 
@@ -478,7 +299,9 @@ while True:
         if prev_a1_state and prev_a2_state:
             if prev_a1_state == curr_a1_state:
                 consecutive_same_state += 1
-            else: consecutive_same_state = 0
+            else: 
+                consecutive_same_state = 0
+
             opp_stocks = prev_a1_state[8]
             # Update the odds
             a1_distance_x, a1_distance_y, a1_damage_taken, a1_damage_done, a1_stock_lost, a1_stock_taken = calculate_rewards(prev_a1_state, curr_a1_state)
@@ -489,19 +312,19 @@ while True:
             a1_actions = {}
 
             # Update odds with longer context
-            update_odds_long(a1_stock_lost, a1_stock_taken, a1_actions_long)                
             # Reset the long term actions list when stocks change
             if a1_stock_lost or a1_stock_taken: 
+                update_odds_long(a1_stock_lost, a1_stock_taken, a1_actions_long)                
                 a1_performed_actions_long = set()
                 a1_actions_long = {}    
             
             a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_stock_lost, a2_stock_taken = calculate_rewards(prev_a2_state, curr_a2_state)
             update_odds(a2_distance_x, a2_distance_y, a2_damage_taken, a2_damage_done, a2_actions)
-            update_odds_long(a2_stock_lost, a2_stock_taken, a2_actions_long)
             a2_performed_actions = set()
             a2_actions = {}
 
             if a2_stock_lost or a2_stock_taken:
+                update_odds_long(a2_stock_lost, a2_stock_taken, a2_actions_long)
                 a2_performed_actions_long = set()
                 a2_actions_long = {}
         
