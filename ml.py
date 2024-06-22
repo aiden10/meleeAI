@@ -1,5 +1,5 @@
 import melee
-import json
+import ujson as json
 import random
 import sys
 import os
@@ -82,26 +82,18 @@ def get_action(state_num, learning_rate = 0.01):
 def unpack_state(state):
     return state[0], state[1], state[2], state[3], state[4], state[5], state[6], state[7], state[8], state[9], state[10]
 
-def calculate_rewards(prev_state, curr_state):
-    global total_damage
-    prev_agent_percent, prev_opp_percent, prev_x_dist, prev_y_dist, prev_x_pos, _, _, _, prev_agent_stocks, prev_opp_stocks, prev_y_pos = unpack_state(prev_state)
-    curr_agent_percent, curr_opp_percent, curr_x_dist, curr_y_dist, curr_x_pos, _, _, _, curr_agent_stocks, curr_opp_stocks, curr_y_pos = unpack_state(curr_state)
-    
-    # weights subject to change
+def calculate_rewards(prev_state, curr_state, agent):
+    curr_x_dist, curr_y_dist, curr_x_pos, curr_agent_stocks, curr_opp_stocks, curr_y_pos, curr_agent_percent, curr_opp_percent = curr_state
+    prev_x_dist, prev_y_dist, prev_x_pos, prev_agent_stocks, prev_opp_stocks, prev_y_pos, prev_agent_percent, prev_opp_percent = prev_state
+
     damage_taken_weight = 0.15
     damage_done_weight = 0.08
-    
-    distance_x = 0
-    distance_y = 0
+    distance_weight = 0.1
 
-    # X/Y Position
-    if abs(curr_x_pos - prev_x_pos) > 5 and curr_x_dist < prev_x_dist: # don't want to include the opponent's movement
-        distance_x = (prev_x_dist - curr_x_dist)
-    if abs(curr_y_pos - prev_y_pos) > 5 and curr_y_dist < prev_y_dist:
-        distance_y = (prev_y_dist - curr_y_dist)
+    distance_x = (prev_x_dist - curr_x_dist) * distance_weight if abs(curr_x_pos - prev_x_pos) > 5 and curr_x_dist < prev_x_dist else 0
+    distance_y = (prev_y_dist - curr_y_dist) * distance_weight if abs(curr_y_pos - prev_y_pos) > 5 and curr_y_dist < prev_y_dist else 0
 
-    # Percentages
-    agent_percent_diff = curr_agent_percent - prev_agent_percent # Damage taken 
+    agent_percent_diff = curr_agent_percent - prev_agent_percent
     opp_percent_diff = curr_opp_percent - prev_opp_percent 
     if opp_percent_diff > 0:
         total_damage += opp_percent_diff
@@ -109,78 +101,46 @@ def calculate_rewards(prev_state, curr_state):
     damage_taken = agent_percent_diff * damage_taken_weight
     damage_done = opp_percent_diff * damage_done_weight
 
-    # Stocks
-    stock_lost = False
-    stock_taken = False
-    if curr_agent_stocks < prev_agent_stocks: stock_lost = True
-    if curr_opp_stocks < prev_opp_stocks: stock_taken = True
+    stock_lost = curr_agent_stocks < prev_agent_stocks
+    stock_taken = curr_opp_stocks < prev_opp_stocks
 
     return distance_x, distance_y, damage_taken, damage_done, stock_lost, stock_taken 
 
-def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.001):
-    nothing_weight = 1
-    for state_num, action_list in actions.items():  # Iterate over state numbers and associated actions
-        for action in action_list:  # Iterate over actions for each state
+def update_odds(dist_x, dist_y, damage_taken, damage_done, actions, learning_rate=0.01):
+    nothing_weight = 0.1
+    for state_num, action_list in actions.items():
+        for action in action_list:
             if action != "Release":
-                # Distance (x)
-                if dist_x != 0:
-                    if action == 'L_Walk' or action == 'R_Walk' or action == 'L_Dash' or action == 'R_Dash':
-                        scaled_change = dist_x * learning_rate
-                        print(f'Distance X: {action} of state #{state_num}: changed by {scaled_change}')
-                        state_data[state_num]["Actions"][action] -= scaled_change
-                # Distance (y)
-                if dist_y != 0:
-                    if action == 'Jump':
-                        scaled_change = dist_y * learning_rate
-                        state_data[state_num]["Actions"][action] -= scaled_change
-                        print(f'Distance Y: {action} of state #{state_num}: changed by {scaled_change}')
-                # Damage done
-                if damage_done != 0:
-                    if action in ATTACK_LIST:
-                        scaled_change = damage_done * learning_rate
-                        state_data[state_num]["Actions"][action] -= scaled_change
-                        print(f'{action} of state #{state_num}: changed by {scaled_change}')
-                        print(f'Damage Done: {action} of state #{state_num}: changed by {scaled_change}')
-                # Damage taken
-                # if damage_taken != 0:
-                #     scaled_change = damage_taken * learning_rate
-                #     state_data[state_num]["Actions"][action] -= scaled_change
-                #     print(f'{action} of state #{state_num}: changed by {scaled_change}')
-                #     print(f'Damage Taken: {action} of state #{state_num}: changed by {scaled_change}')
-
-                if dist_x == 0 and dist_y == 0 and damage_done == 0: # if nothing happened
-                    if action in ATTACK_LIST:
-                        scaled_change = nothing_weight * learning_rate
-                        state_data[state_num]["Actions"][action] -= scaled_change # make it less likely
-
-                        # Make movements more likely
-                        state_data[state_num]["Actions"]['L_Dash'] += scaled_change
-                        state_data[state_num]["Actions"]['R_Dash'] += scaled_change
-                        state_data[state_num]["Actions"]['L_Walk'] += scaled_change
-                        state_data[state_num]["Actions"]['R_Walk'] += scaled_change
-                        state_data[state_num]["Actions"]['Jump'] += scaled_change
-
-                        print(f'Nothing Changed: {action} changed by -{scaled_change}')
-                        print(f'Nothing Changed: Movements changed by {scaled_change}')
+                if dist_x and action in ['L_Walk', 'R_Walk', 'L_Dash', 'R_Dash']:
+                    state_data[state_num]["Actions"][action] -= dist_x * learning_rate
+                if dist_y and action == 'Jump':
+                    state_data[state_num]["Actions"][action] -= dist_y * learning_rate
+                if damage_done and action in ATTACK_LIST:
+                    state_data[state_num]["Actions"][action] -= damage_done * learning_rate
+                if damage_taken:
+                    state_data[state_num]["Actions"][action] -= damage_taken * learning_rate
+                if not (dist_x or dist_y or damage_done) and action in ATTACK_LIST:
+                    state_data[state_num]["Actions"][action] -= nothing_weight * learning_rate
+                    for move_action in ['L_Dash', 'R_Dash', 'L_Walk', 'R_Walk', 'Jump']:
+                        state_data[state_num]["Actions"][move_action] += nothing_weight * learning_rate
 
 def update_odds_long(stock_lost, stock_taken, actions_long, learning_rate=0.01):
-    # Stocks
     stock_weight = 0.15
     death_penalty = 0.05 * learning_rate
     sd_penalty = stock_weight * learning_rate
     if stock_lost:
         for state_num, action_list in actions_long.items():
-            for action in action_list:  
-                if action != 'Jump': # excluding jumps since most deaths are from sding and jumps would help prevent that
-                    state_data[state_num]["Actions"][action] -= (death_penalty)
-                    print(f'{action} of state #{state_num}: changed by -{death_penalty}')
+            for action in action_list:
+                if action != "Release":
+                    state_data[state_num]["Actions"][action] += death_penalty
+                    if action in ATTACK_LIST:
+                        state_data[state_num]["Actions"][action] += sd_penalty
 
-                if action == 'L_Walk' or action == 'R_Walk' or action == 'L_Dash' or action == 'R_Dash':
-                    state_data[state_num]["Actions"][action] -= (sd_penalty)
-                    print(f'{action} of state #{state_num}: changed by -{sd_penalty}')
-            # if stock_taken:
-            #     state_data[state_num]["Actions"][action] += (sd_penalty)
-            #     print(f'{action} of state #{state_num}: changed by -{sd_penalty}')
+    if stock_taken:
+        for state_num, action_list in actions_long.items():
+            for action in action_list:
+                if action != "Release":
+                    state_data[state_num]["Actions"][action] -= stock_weight * learning_rate
 
 def update_agent():
     with open(f"{CURRENT_DIR}/agent_data.json", "w") as json_file: 

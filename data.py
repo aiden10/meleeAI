@@ -42,7 +42,7 @@ def create_initial_agent():
         data[state_id]["Actions"]["R_Dash"] += 0.05
 
     with open(f"{CURRENT_DIR}/agent_data.json", "w") as json_file:
-        json.dump(data, json_file, indent=4)
+        json.dump(data, json_file)
 
         print("done")
         json_file.close()

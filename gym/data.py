@@ -34,14 +34,14 @@ def create_initial_agent():
     data = {}
     for state_id, state in enumerate(states, start=1):
         action_probs = {action: 1/len(actions) for action in actions}
-        if state == (-1000, -85):
+        if state == (-1000, -85): # offstage and at edge of stage (left side)
             action_probs["L_Dash"] += 0.3  # Make L_Dash less likely
             action_probs["L_Walk"] += 0.3  # Make L_Walk less likely
             action_probs["R_Dash"] += 0.3  # Make R_Dash more likely
             action_probs["R_Walk"] += 0.3  # Make R_Walk more likely
             action_probs["Jump"] += 0.3    # Make jumps more likely
         
-        elif state == (85, 1000):
+        elif state == (85, 1000): # offstage and at edge of stage (right side)
             action_probs["R_Dash"] += 0.3  # Make R_Dash less likely
             action_probs["R_Walk"] += 0.3  # Make R_Walk less likely
             action_probs["L_Dash"] += 0.3  # Make L_Dash more likely
@@ -53,7 +53,7 @@ def create_initial_agent():
         
         data[state_id] = {"State": state, "Actions": action_probs}
     with open(f"{CURRENT_DIR}/agent_data.json", "w") as json_file:
-        json.dump(data, json_file, indent=4)
+        json.dump(data, json_file)
 
         print("done")
         json_file.close()
