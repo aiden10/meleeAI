@@ -1,6 +1,6 @@
 import melee
 import ujson as json
-import random
+import numpy as np
 import sys
 import os
 from functions import *
@@ -49,35 +49,18 @@ def get_current_state(g, agent_port, opponent_port):
 
     return None 
 
-def get_action(state_num, learning_rate = 0.01):
-    recover_weight = 1
+def softmax(x):
+    return (np.exp(x) / np.sum(np.exp(x), axis=0)).tolist()
+
+def get_action(state_num):
     actions = state_data[str(state_num)]["Actions"]
+    probabilities = list(actions.values())
+    softmaxed_probabilities = softmax(probabilities)
+    most_likely = max(softmaxed_probabilities)
+    action_index = softmaxed_probabilities.index(most_likely)
+    best_action = list(actions)[action_index]
 
-    x_range = state_data[str(state_num)]['State']["Agent_X_Position"]
-    if (x_range[0] == 1000 or x_range[0] == -1000) and (x_range[1] == 85 or x_range[1] == -85) or (x_range[0] == 85 or x_range[0] == -85) and (x_range[1] == 1000 or x_range[1] == -1000):
-        actions['Jump'] += (recover_weight * learning_rate) 
-        print(f'Jump more likely by {recover_weight * learning_rate}')
-    # Normalize action probabilities to be non-negative
-    min_prob = min(actions.values())
-    if min_prob < 0:
-        actions = {action: prob - min_prob for action, prob in actions.items()}
-
-    total_prob = sum(actions.values())
-    if total_prob == 0:
-        return "Release"  # Return default action if all probabilities are zero
-
-    # Normalize the probabilities to sum to 1
-    actions = {action: prob / total_prob for action, prob in actions.items()}
-    state_data[str(state_num)]["Actions"] = actions
-
-    rand_num = random.uniform(0, 1)
-    cumulative_prob = 0
-    for action, prob in actions.items():
-        cumulative_prob += prob
-        if rand_num <= cumulative_prob:
-            return action
-
-    return "Release"  # Fallback in case no action is selected
+    return best_action    
         
 def unpack_state(state):
     return state[0], state[1], state[2], state[3], state[4], state[5], state[6], state[7], state[8], state[9], state[10]

@@ -15,30 +15,39 @@ def create_plot(path):
     matches = match_data["Matches"]
 
     match_numbers = [match["Match Number"] for match in matches]
-    damages = [match["Damage done"] for match in matches]
-
+    damages = [match["Damage Done"] for match in matches]
+    performances = [match["Performance"] for match in matches]
     df = pd.DataFrame({
         'match_number': match_numbers,
-        'damage_done': damages
+        'damage_done': damages,
+        'performances' : performances
     })
 
     # rolling average
     window_size = 100  
-    df['rolling_avg'] = df['damage_done'].rolling(window=window_size).mean()
+    df['damage_rolling_avg'] = df['damage_done'].rolling(window=window_size).mean()
 
-    fig, ax = plt.subplots()
-    ax.plot(df['match_number'], df['rolling_avg'], label=f'{window_size}-Game Rolling Average', color='orange')
-    ax.scatter(df['match_number'], df['damage_done'], alpha=0.3, s=10)  
-    low_damage = df[df['damage_done'] < 10]
-    
-    ax.scatter(low_damage['match_number'], low_damage['damage_done'], color='red', alpha=0.6, s=10, label='Damage < 30')
+    fig, ax1 = plt.subplots()
 
-    ax.set(xlabel='Game Number', ylabel='Total Damage Done', title='Training')
-    ax.grid()
-    ax.legend()
+    # Plot damage done
+    ax1.set_xlabel('Game Number')
+    ax1.set_ylabel('Total Damage Done')
+    ax1.plot(df['match_number'], df['damage_rolling_avg'], label=f'{window_size}-Game Damage Rolling Average', color='orange')
+    ax1.scatter(df['match_number'], df['damage_done'], alpha=0.3, s=10)  
+    low_damage = df[df['damage_done'] < 30]
+    ax1.scatter(low_damage['match_number'], low_damage['damage_done'], color='red', alpha=0.6, s=10, label='Damage < 30')
+    ax1.grid()
+    ax1.legend(loc='upper left')
 
+    # Create a second y-axis for performance
+    ax2 = ax1.twinx()  
+    ax2.set_ylabel('Performance')
+    ax2.plot(df['match_number'], df['performances'], color='blue', alpha=0.2, label='Performance')
+    ax2.legend(loc='upper right')
+
+    fig.tight_layout()  # To ensure the right y-label is not slightly clipped
+
+    plt.title('Training')
     plt.show()
 
 create_plot(gym_path)
-
-# 905 started using pretrained agent
