@@ -7,7 +7,7 @@ import pandas as pd
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 regular_path = os.path.join(CURRENT_DIR, 'stats.json')
-gym_path = os.path.join(CURRENT_DIR, 'gym', 'stats.json')
+gym_path = os.path.join(CURRENT_DIR, 'simv2', 'stats.json')
 
 def create_plot(path):
     with open(path, "r") as data:
