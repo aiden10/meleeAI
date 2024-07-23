@@ -40,7 +40,22 @@ After trying different weights and adjusting the policy, I was still failing to 
 
 ![melee_sim-ezgif com-video-to-gif-converter](https://github.com/aiden10/meleeAI/assets/51337166/58cb6ee2-0d37-483b-be85-f8ef2b67331c)
 
-### Actual Improvement
+### Actual Improvement (fig. 3)
 Prior to this, I had been operating under the false assumption that Q-Learning was simply making good actions more probable, and bad actions less probable. I looked at the formula previously and assumed that that was the jist of it. And while that was partially true, it turns out that it was a bit more nuanced. I think the biggest mistake I was making previously may have been not implementing any way of balancing exploration and exploitation/greed. The other mistake is that when dealing exclusively with probabilities, it's a bit tougher to determine how much the results of any given action should impact the probability of doing it again. The formula for Q-Learning is also more sophisticated than what I had been doing, with it applying a discount rate and subtracting the highest q-value from the new state by the q-value of the action that was just performed. As for the actual results after applying the correct formula and an epsilon greedy approach for exploration, you can see that the agent begins to improve quite quickly, with average damage increasing quite a bit over the course of the first 600 or so games. The issue that arises is afterwards, when it starts to act "greedily" and only chooses the actions which would yield the highest q-values, leading to a continued increase in q-values/rewards, but a huge decrease in damage done and actual performance.
 
 ![q-learning](https://github.com/user-attachments/assets/2a629f41-dacc-4d2d-9fe3-b80ac9361ed2)
+
+### Tweaking Rewards and Hyperparameters (fig. 4)
+Here, I updated the rewards to penalize bad actions more severely. The actions that I considered "bad" were those that resulted in moving away from the opponent or didn't move closer or do any damage. Interestingly, the agent's improvement went through many ups and downs until finally seeming to stabilize after about 3500 games. Also, this setup is still far from perfect as evidenced by the Q-values not aligning with the increases in damage, seeming inversely proportional to the damage, and growing very negative even after the agent should have begun to try maximizing the Q-values. As for the actual footage, it is still rather lackluster. 
+
+![4](https://github.com/user-attachments/assets/5ffa570c-9792-4161-b6fd-5b1ed954607b)
+
+#### Simulation Results
+![fig4 2-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/09d9d8a4-0f17-4f69-baaa-5a8af9e2bdb6)
+
+As you can see in the simulation, the agents appear to be acting in accordance to the rewards I set up, generally moving towards one another and attacking to do damage. The simulation is far from perfect and is more of a rough implementation meant to hopefully allow for the bare minimum of moving towards the opponent. I'm not really sure how knockback is calculated in the real game and there's a lot more smaller things which differ from the actual game, like attack distances, jump height, stage distances, getup attacks, ledges, etc, which is probably why it didn't translate super well to the real game as you can see below.
+
+#### Simulation -> Real Game
+![fig4 1-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/b6c63573-192a-473d-9e84-0c5c998f2e7b)
+
+Here, the exact same Q-Table and decision making process is applied but this time to the actual game. The results here were even worse than in the simulation and seemed almost like purely random imputs at times. It could probably be improved by resetting the epsilon to a higher value to encourage more exploration again and then letting it train in the real game but I think it'd be best to instead just try applying Deep Q-Learning at this point. And I would also like to try using Slippi replays to mimic human playstyles at some point. In conclusion, the Q-Table kind of works here, but there's some compromises that needed to be made in order to keep the number of states small enough both for file size and keeping training time low. With that said, I was still pleasantly surprised by the results of using a Q-Table for this and seeing improvements on the graphs is a nice feeling.  
