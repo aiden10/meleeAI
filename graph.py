@@ -3,51 +3,54 @@ import json
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.animation as animation
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+gym_path = os.path.join(CURRENT_DIR, 'gym', 'stats.json')
+real_game_path = os.path.join(CURRENT_DIR, 'stats.json')
 
-regular_path = os.path.join(CURRENT_DIR, 'stats.json')
-gym_path = os.path.join(CURRENT_DIR, 'simv2', 'stats.json')
-
-def create_plot(path):
+def load_data(path):
     with open(path, "r") as data:
         match_data = json.load(data)
     matches = match_data["Matches"]
-
     match_numbers = [match["Match Number"] for match in matches]
     damages = [match["Damage Done"] for match in matches]
     performances = [match["Performance"] for match in matches]
     df = pd.DataFrame({
         'match_number': match_numbers,
         'damage_done': damages,
-        'performances' : performances
+        'performances': performances
     })
-
-    # rolling average
-    window_size = 100  
+    window_size = 100
     df['damage_rolling_avg'] = df['damage_done'].rolling(window=window_size).mean()
+    return df
 
-    fig, ax1 = plt.subplots()
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
 
+def animate(i):
+    df = load_data(gym_path)
+    
+    ax1.clear()
+    ax2.clear()
+    
     # Plot damage done
-    ax1.set_xlabel('Game Number')
     ax1.set_ylabel('Total Damage Done')
-    ax1.plot(df['match_number'], df['damage_rolling_avg'], label=f'{window_size}-Game Damage Rolling Average', color='orange')
-    ax1.scatter(df['match_number'], df['damage_done'], alpha=0.3, s=10)  
+    ax1.plot(df['match_number'], df['damage_rolling_avg'], label='100-Game Damage Rolling Average', color='orange')
+    ax1.scatter(df['match_number'], df['damage_done'], alpha=0.3, s=10)
     low_damage = df[df['damage_done'] < 30]
     ax1.scatter(low_damage['match_number'], low_damage['damage_done'], color='red', alpha=0.6, s=10, label='Damage < 30')
     ax1.grid()
     ax1.legend(loc='upper left')
-
-    # Create a second y-axis for performance
-    ax2 = ax1.twinx()  
-    ax2.set_ylabel('Performance')
-    ax2.plot(df['match_number'], df['performances'], color='blue', alpha=0.2, label='Performance')
+    
+    # Plot performance
+    ax2.set_xlabel('Game Number')
+    ax2.set_ylabel('Q-Value')
+    ax2.plot(df['match_number'], df['performances'], color='blue', alpha=0.2, label='Q-Values')
     ax2.legend(loc='upper right')
+    ax2.grid()
+    plt.text(0.5, 0.93, 'Training', fontsize=20, transform=plt.gcf().transFigure)
+    plt.text(0.025, 0.93, 'Figure 4.3', fontsize=16, transform=plt.gcf().transFigure)
+    plt.text(0.015, 0.03, 'Same as figure 4, but after 4000 games, I set min_epsilon to 0 so it is not exploring at all.', fontsize=9, transform=plt.gcf().transFigure)
 
-    fig.tight_layout()  # To ensure the right y-label is not slightly clipped
-
-    plt.title('Training')
-    plt.show()
-
-create_plot(gym_path)
+ani = animation.FuncAnimation(fig, animate, interval=5000, cache_frame_data=False)  # 5 seconds
+plt.show()
