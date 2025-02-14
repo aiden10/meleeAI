@@ -1,3 +1,28 @@
+"""
+Ultimate:
+Read yuzu's memory
+Write functions to extract values like player percentages, x,y positions, game state, etc.
+    Will require some trial and error to determine the memory addresses
+
+Setup functions to simulate button presses
+Might not be too bad because of libraries which simulate gamepads, just need to make it work with yuzu
+
+AI can either be machine learning or a state machine
+State machine:
+    Easier to make but less interesting
+    Still challenging to make good and would be fun to make without worrying about machine learning stuff
+
+Machine learning:
+    Tough to make good because smash is so fast and there's tons of possible actions and button combinations
+    Making it actually good would be very difficult
+
+Replays:
+    Since Ultimate has replay's it might be possible to try to make a humanlike agent by training a model to predict the controller state based on 
+    tons of replays
+    This would be pretty tough especially since replays aren't readily available and I don't know the format
+    Would require a lot of replays and would really only work for one set of characters and stages
+"""
+
 import melee
 from functions import *
 

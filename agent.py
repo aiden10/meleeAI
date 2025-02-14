@@ -299,7 +299,7 @@ def main(train, record):
                                                 connect_code="",
                                                 cpu_level=0,
                                                 costume=0,
-                                                autostart=True,
+                                                autostart=False,
                                                 swag=False)
             
             melee.MenuHelper.menu_helper_simple(gamestate,
@@ -307,7 +307,7 @@ def main(train, record):
                                                 a2_character,
                                                 melee.Stage.FINAL_DESTINATION,
                                                 connect_code="",
-                                                cpu_level=0,
+                                                cpu_level=3,
                                                 costume=0,
                                                 autostart=True,
                                                 swag=False)

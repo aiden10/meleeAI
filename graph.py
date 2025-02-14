@@ -7,6 +7,7 @@ import matplotlib.animation as animation
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 gym_path = os.path.join(CURRENT_DIR, 'gym', 'stats.json')
+deepq_path = os.path.join(CURRENT_DIR, 'deepq', 'stats.json')
 real_game_path = os.path.join(CURRENT_DIR, 'stats.json')
 
 def load_data(path):
@@ -28,7 +29,7 @@ def load_data(path):
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
 
 def animate(i):
-    df = load_data(gym_path)
+    df = load_data(deepq_path)
     
     ax1.clear()
     ax2.clear()
@@ -49,8 +50,8 @@ def animate(i):
     ax2.legend(loc='upper right')
     ax2.grid()
     plt.text(0.5, 0.93, 'Training', fontsize=20, transform=plt.gcf().transFigure)
-    plt.text(0.025, 0.93, 'Figure 4.3', fontsize=16, transform=plt.gcf().transFigure)
-    plt.text(0.015, 0.03, 'Same as figure 4, but after 4000 games, I set min_epsilon to 0 so it is not exploring at all.', fontsize=9, transform=plt.gcf().transFigure)
+    plt.text(0.025, 0.93, '', fontsize=16, transform=plt.gcf().transFigure)
+    plt.text(0.015, 0.03, '', fontsize=9, transform=plt.gcf().transFigure)
 
 ani = animation.FuncAnimation(fig, animate, interval=5000, cache_frame_data=False)  # 5 seconds
 plt.show()
